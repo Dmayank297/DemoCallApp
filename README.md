@@ -1,4 +1,4 @@
-# NightDial — Calling App
+# CallApp — Calling App
 
 A simulated calling app built with Kotlin + Jetpack Compose following MVVM architecture.
 
@@ -9,7 +9,6 @@ A simulated calling app built with Kotlin + Jetpack Compose following MVVM archi
 **Key design decision:** A single shared `CallViewModel` is scoped to the nav graph and owns the `CallState` sealed class. This is the single source of truth for all call transitions. Individual screen ViewModels (`DialPadViewModel`, `ActiveCallViewModel`) only manage their own local UI state (toggles, input).
 
 ## Call State Machine
-
 ```
 Idle → Calling → Ringing → Active → Ended → Idle
 ```
@@ -23,7 +22,6 @@ Idle → Calling → Ringing → Active → Ended → Idle
 Navigation between call screens is driven entirely by `LaunchedEffect` observing `CallState` — no screen manually navigates itself.
 
 ## Project Structure
-
 ```
 app/
 ├── data/
@@ -39,7 +37,7 @@ app/
 │       └── CallRepository.kt
 ├── navigation/
 │   ├── NavigationState.kt
-│   └── NightDialApp.kt
+│   └── CallApp.kt
 └── ui/
     ├── call/
     │   └── CallViewModel.kt          ← shared, nav-graph scoped
@@ -61,7 +59,7 @@ app/
     │       ├── ActiveCallViewModel.kt
     │       └── ActiveCallScreen.kt
     └── theme/
-        └── NightDialTheme.kt
+        └── CallAppTheme.kt
 ```
 
 ## Fonts
