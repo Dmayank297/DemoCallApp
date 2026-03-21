@@ -1,0 +1,55 @@
+package com.example.democallapp.ui.screens.components
+
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.democallapp.R
+import com.example.democallapp.ui.theme.DMSansFontFamily
+import com.example.democallapp.ui.theme.NightDialColors
+
+
+@Composable
+fun EncryptedBadge(
+    label: String = "ENCRYPTED CONNECTION",
+    icon: Int = R.drawable.security,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .background(
+                color = NightDialColors.SurfaceVariant,
+                shape = RoundedCornerShape(50)
+            )
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = NightDialColors.AccentGreen,
+            modifier = Modifier.size(14.dp)
+        )
+        Text(
+            text = label,
+            color = NightDialColors.OnSurfaceMuted,
+            fontSize = 11.sp,
+            fontFamily = DMSansFontFamily,
+            fontWeight = FontWeight.Medium,
+            letterSpacing = 0.8.sp
+        )
+    }
+}
