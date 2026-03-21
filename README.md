@@ -79,6 +79,12 @@ Download from [Google Fonts — DM Sans](https://fonts.google.com/specimen/DM+Sa
 
 Tap the video icon (left of call button on dial pad) to trigger an immediate simulated incoming call. Alternatively, dial any number and press Call — an incoming call will be auto-simulated after 3 seconds.
 
+## Screenshots
+
+| Dial Pad | Outgoing Call | Incoming Call | Active Call |
+|----------|---------------|---------------|-------------|
+| <img src="app/src/main/res/screenshots/dialpad.png" width="200"/> | <img src="app/src/main/res/screenshots/outgoing.png" width="200"/> | <img src="app/src/main/res/screenshots/incoming.png" width="200"/> | <img src="app/src/main/res/screenshots/active_call.png" width="200"/> |
+
 ## Bonus Features Implemented
 
 - Jetpack Compose ✓
