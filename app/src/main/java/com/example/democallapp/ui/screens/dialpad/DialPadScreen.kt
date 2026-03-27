@@ -1,5 +1,8 @@
 package com.example.democallapp.ui.screens.dialpad
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -21,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,18 +32,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.democallapp.R
 import com.example.democallapp.ui.screens.components.DialKey
 import com.example.democallapp.ui.screens.components.PrimaryCallButton
 import com.example.democallapp.ui.theme.DMSansFontFamily
 import com.example.democallapp.ui.theme.NightDialColors
-
 
 private val dialKeys = listOf(
     listOf("1", "2", "3"),
@@ -50,22 +55,28 @@ private val dialKeys = listOf(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DialPadScreen(
-    viewModel: DialPadViewModel,
-    onCallInitiated: (String) -> Unit,
-    onSimulateIncoming: () -> Unit
-) {
+fun DialPadScreen(viewModel: DialPadViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    val callPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) viewModel.onEvent(DialPadEvent.CallPressed)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.callIntent.collect { intent ->
+            context.startActivity(intent)
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF0D1A12),
-                        NightDialColors.Background
-                    ),
+                    colors = listOf(Color(0xFF0D1A12), NightDialColors.Background),
                     radius = 900f
                 )
             )
@@ -95,7 +106,7 @@ fun DialPadScreen(
                     row.forEach { key ->
                         DialKey(
                             key = key,
-                            onClick = { viewModel.onKeyPressed(key) }
+                            onClick = { viewModel.onEvent(DialPadEvent.KeyPressed(key)) }
                         )
                     }
                 }
@@ -109,25 +120,7 @@ fun DialPadScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(NightDialColors.SurfaceVariant)
-                        .combinedClickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = ripple(bounded = true),
-                            onClick = onSimulateIncoming
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.video_call),
-                        contentDescription = "Simulate Incoming",
-                        tint = NightDialColors.OnSurfaceMuted,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Box(modifier = Modifier.size(64.dp))
 
                 PrimaryCallButton(
                     icon = R.drawable.call,
@@ -139,7 +132,7 @@ fun DialPadScreen(
                     iconTint = if (uiState.isCallEnabled) Color(0xFF003320) else NightDialColors.OnSurfaceFaint,
                     onClick = {
                         if (uiState.isCallEnabled) {
-                            onCallInitiated(uiState.inputNumber)
+                            callPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
                         }
                     },
                     size = 72.dp,
@@ -159,8 +152,8 @@ fun DialPadScreen(
                         .combinedClickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = ripple(bounded = true),
-                            onClick = { viewModel.onBackspace() },
-                            onLongClick = { viewModel.onBackspaceLongPress() }
+                            onClick = { viewModel.onEvent(DialPadEvent.Backspace) },
+                            onLongClick = { viewModel.onEvent(DialPadEvent.BackspaceLongPress) }
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -179,10 +172,7 @@ fun DialPadScreen(
 }
 
 @Composable
-private fun NumberDisplay(
-    display: String,
-    isEmpty: Boolean
-) {
+private fun NumberDisplay(display: String, isEmpty: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxWidth()

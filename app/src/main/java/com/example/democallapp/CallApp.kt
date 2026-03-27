@@ -1,134 +1,140 @@
 package com.example.democallapp
 
-
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.democallapp.state.CallState
-import com.example.democallapp.ui.screens.CallViewModel
 import com.example.democallapp.ui.screens.active.ActiveCallScreen
 import com.example.democallapp.ui.screens.active.ActiveCallViewModel
+import com.example.democallapp.ui.screens.calllogs.CallLogsScreen
+import com.example.democallapp.ui.screens.calllogs.CallLogsViewModel
+import com.example.democallapp.ui.screens.contacts.ContactsScreen
+import com.example.democallapp.ui.screens.contacts.ContactsViewModel
 import com.example.democallapp.ui.screens.dialpad.DialPadScreen
 import com.example.democallapp.ui.screens.dialpad.DialPadViewModel
-import com.example.democallapp.ui.screens.incoming.IncomingCallScreen
-import com.example.democallapp.ui.screens.outgoing.OutgoingCallScreen
-
+import com.example.democallapp.ui.theme.DMSansFontFamily
+import com.example.democallapp.ui.theme.NightDialColors
 
 @Composable
 fun CallApp() {
-    val appState = rememberAppState()
-    val callViewModel: CallViewModel = hiltViewModel()
-    val callState by callViewModel.callState.collectAsStateWithLifecycle()
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
-    HandleCallNavigation(
-        callState = callState,
-        appState = appState
-    )
+    val isOnCallScreen = currentDestination?.route?.startsWith("ActiveCallScreen") == true
 
-    NavHost(
-        navController = appState.navController,
-        startDestination = Screen.BottomNavScreen.Keypad.route
-    ) {
-        nightDialNavGraph(
-            appState = appState,
-            callViewModel = callViewModel
-        )
-    }
-}
-
-@Composable
-fun rememberAppState(
-    navController: NavHostController = rememberNavController()
-) = remember(navController) {
-    NavigationState(navController)
-}
-
-@Composable
-private fun HandleCallNavigation(
-    callState: CallState,
-    appState: NavigationState
-) {
-    val currentRoute = appState.navController.currentBackStackEntry?.destination?.route
-
-    androidx.compose.runtime.LaunchedEffect(callState) {
-        when (callState) {
-            is CallState.Calling -> {
-                if (currentRoute != Screen.OutgoingCall.route) {
-                    appState.navigate(Screen.OutgoingCall.route)
+    Column(modifier = Modifier.fillMaxSize().background(NightDialColors.Background)) {
+        Box(modifier = Modifier.weight(1f)) {
+            NavHost(
+                navController = navController,
+                startDestination = Screen.BottomNavScreen.Keypad.route
+            ) {
+                composable(Screen.BottomNavScreen.Keypad.route) {
+                    val vm: DialPadViewModel = hiltViewModel()
+                    DialPadScreen(viewModel = vm)
+                }
+                composable(Screen.BottomNavScreen.Recents.route) {
+                    val vm: CallLogsViewModel = hiltViewModel()
+                    CallLogsScreen(viewModel = vm)
+                }
+                composable(Screen.BottomNavScreen.Contacts.route) {
+                    val vm: ContactsViewModel = hiltViewModel()
+                    ContactsScreen(viewModel = vm)
+                }
+                composable(Screen.ActiveCall.route + "/{name}/{number}") { backStack ->
+                    val vm: ActiveCallViewModel = hiltViewModel()
+                    val name = backStack.arguments?.getString("name") ?: ""
+                    val number = backStack.arguments?.getString("number") ?: ""
+                    ActiveCallScreen(
+                        callerName = name,
+                        callerNumber = number,
+                        viewModel = vm
+                    )
                 }
             }
-            is CallState.Ringing -> {
-                if (currentRoute != Screen.IncomingCall.route) {
-                    appState.navigate(Screen.IncomingCall.route)
+        }
+
+        if (!isOnCallScreen) {
+            CallAppBottomBar(
+                currentDestination = currentDestination,
+                onNavigate = { screen ->
+                    navController.navigate(screen.bRoute) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
-            }
-            is CallState.Active -> {
-                if (currentRoute != Screen.ActiveCall.route) {
-                    appState.navigateAndPopUp(Screen.ActiveCall.route, Screen.IncomingCall.route)
-                }
-            }
-            is CallState.Ended, is CallState.Idle -> {
-                val callRoutes = listOf(
-                    Screen.OutgoingCall.route,
-                    Screen.IncomingCall.route,
-                    Screen.ActiveCall.route
-                )
-                if (currentRoute in callRoutes) {
-                    appState.clearAndNavigate(Screen.BottomNavScreen.Keypad.route)
-                }
-            }
+            )
         }
     }
 }
 
-fun NavGraphBuilder.nightDialNavGraph(
-    appState: NavigationState,
-    callViewModel: CallViewModel
+@Composable
+private fun CallAppBottomBar(
+    currentDestination: androidx.navigation.NavDestination?,
+    onNavigate: (Screen.BottomNavScreen) -> Unit
 ) {
-    composable(route = Screen.BottomNavScreen.Keypad.route) {
-        val dialPadViewModel: DialPadViewModel = hiltViewModel()
-        DialPadScreen(
-            viewModel = dialPadViewModel,
-            onCallInitiated = { number ->
-                callViewModel.startOutgoingCall(number)
-            },
-            onSimulateIncoming = {
-                callViewModel.triggerSimulatedIncoming()
-            }
-        )
-    }
-
-    composable(route = Screen.OutgoingCall.route) {
-        val callState by callViewModel.callState.collectAsStateWithLifecycle()
-        OutgoingCallScreen(
-            callState = callState,
-            onEndCall = { callViewModel.endCall() }
-        )
-    }
-
-    composable(route = Screen.IncomingCall.route) {
-        val callState by callViewModel.callState.collectAsStateWithLifecycle()
-        IncomingCallScreen(
-            callState = callState,
-            onAccept = { callViewModel.acceptCall() },
-            onReject = { callViewModel.rejectCall() }
-        )
-    }
-
-    composable(route = Screen.ActiveCall.route) {
-        val activeCallViewModel: ActiveCallViewModel = hiltViewModel()
-        val callState by callViewModel.callState.collectAsStateWithLifecycle()
-        ActiveCallScreen(
-            callState = callState,
-            viewModel = activeCallViewModel,
-            onEndCall = { callViewModel.endCall() }
-        )
+    NavigationBar(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+        containerColor = NightDialColors.Surface,
+        tonalElevation = 0.dp
+    ) {
+        bottomNavItems.forEach { screen ->
+            val selected = currentDestination?.hierarchy?.any { it.route == screen.bRoute } == true
+            NavigationBarItem(
+                selected = selected,
+                onClick = { onNavigate(screen) },
+                icon = {
+                    Icon(
+                        painter = painterResource(
+                            if (selected) screen.bSelectedIcon else screen.bIcon
+                        ),
+                        contentDescription = screen.bTitle,
+                        modifier = Modifier.size(22.dp)
+                    )
+                },
+                label = {
+                    Text(
+                        text = screen.bTitle,
+                        fontSize = 11.sp,
+                        fontFamily = DMSansFontFamily,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                    )
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = NightDialColors.AccentGreen,
+                    selectedTextColor = NightDialColors.AccentGreen,
+                    unselectedIconColor = NightDialColors.OnSurfaceMuted,
+                    unselectedTextColor = NightDialColors.OnSurfaceMuted,
+                    indicatorColor = NightDialColors.SurfaceVariant
+                )
+            )
+        }
     }
 }

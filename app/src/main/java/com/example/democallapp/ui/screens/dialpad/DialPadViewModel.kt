@@ -1,11 +1,17 @@
 package com.example.democallapp.ui.screens.dialpad
 
+import android.content.Intent
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.democallapp.domain.usecase.BuildCallIntentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class DialPadUiState(
@@ -14,13 +20,34 @@ data class DialPadUiState(
     val isCallEnabled: Boolean = false
 )
 
+sealed class DialPadEvent {
+    data class KeyPressed(val key: String) : DialPadEvent()
+    object Backspace : DialPadEvent()
+    object BackspaceLongPress : DialPadEvent()
+    object CallPressed : DialPadEvent()
+}
+
 @HiltViewModel
-class DialPadViewModel @Inject constructor() : ViewModel() {
+class DialPadViewModel @Inject constructor(
+    private val buildCallIntent: BuildCallIntentUseCase
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DialPadUiState())
     val uiState: StateFlow<DialPadUiState> = _uiState.asStateFlow()
 
-    fun onKeyPressed(key: String) {
+    private val _callIntent = MutableSharedFlow<Intent>()
+    val callIntent = _callIntent.asSharedFlow()
+
+    fun onEvent(event: DialPadEvent) {
+        when (event) {
+            is DialPadEvent.KeyPressed -> appendKey(event.key)
+            DialPadEvent.Backspace -> backspace()
+            DialPadEvent.BackspaceLongPress -> clearAll()
+            DialPadEvent.CallPressed -> initiateCall()
+        }
+    }
+
+    private fun appendKey(key: String) {
         _uiState.update { state ->
             val updated = state.inputNumber + key
             state.copy(
@@ -31,7 +58,7 @@ class DialPadViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun onBackspace() {
+    private fun backspace() {
         _uiState.update { state ->
             val updated = state.inputNumber.dropLast(1)
             state.copy(
@@ -42,9 +69,15 @@ class DialPadViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun onBackspaceLongPress() {
-        _uiState.update {
-            DialPadUiState()
+    private fun clearAll() {
+        _uiState.update { DialPadUiState() }
+    }
+
+    private fun initiateCall() {
+        val number = _uiState.value.inputNumber
+        if (number.isBlank()) return
+        viewModelScope.launch {
+            _callIntent.emit(buildCallIntent(number))
         }
     }
 
