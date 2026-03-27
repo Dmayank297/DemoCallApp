@@ -214,9 +214,9 @@ private fun CallLogItem(entry: CallLogEntry, onClick: () -> Unit) {
                 fontFamily = DMSansFontFamily
             )
         }
-        Column(horizontalAlignment = Alignment.End) {
-            Text(text = entry.durationSeconds.toCallDurationString(),
-                color = NightDialColors.OnSurfaceMuted, fontSize = 12.sp, fontFamily = DMSansFontFamily)
-        }
+//        Column(horizontalAlignment = Alignment.End) {
+//            Text(text = entry.durationSeconds.toCallDurationString(),
+//                color = NightDialColors.OnSurfaceMuted, fontSize = 12.sp, fontFamily = DMSansFontFamily)
+//        }
     }
 }

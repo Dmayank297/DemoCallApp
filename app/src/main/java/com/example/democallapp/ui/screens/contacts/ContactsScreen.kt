@@ -177,12 +177,26 @@ private fun ContactItem(contact: Contact, onClick: () -> Unit) {
             Text(text = contact.number, color = NightDialColors.OnSurfaceMuted,
                 fontSize = 13.sp, fontFamily = DMSansFontFamily, fontWeight = FontWeight.Normal)
         }
-        IconButton(onClick = onClick, modifier = Modifier)
-
-         {
-            Icon(painter = painterResource(R.drawable.call), contentDescription = "Call",
-                tint = NightDialColors.AccentGreen, modifier = Modifier.size(18.dp)
-                )
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(
+                        bounded = true,
+                        color = NightDialColors.AccentGreen.copy(alpha = 0.2f)
+                    ),
+                    onClick = onClick
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.call),
+                contentDescription = "Call",
+                tint = NightDialColors.AccentGreen,
+                modifier = Modifier.size(18.dp)
+            )
         }
 
     }

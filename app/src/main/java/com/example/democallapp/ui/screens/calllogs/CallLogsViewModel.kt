@@ -44,12 +44,12 @@ class CallLogsViewModel @Inject constructor(
     val callIntent = _callIntent.asSharedFlow()
 
     private var wasOffhook = false
-
-//    init {
-//        observeCallStateForRefresh()
-//    }
+    private var isObservingCallState = false  // ADD THIS GUARD
 
     private fun observeCallStateForRefresh() {
+        if (isObservingCallState) return  // PREVENT DUPLICATE OBSERVERS
+        isObservingCallState = true
+
         observeCallState()
             .onEach { state ->
                 when (state) {
@@ -75,6 +75,7 @@ class CallLogsViewModel @Inject constructor(
         _uiState.update { it.copy(hasPhoneStatePermission = true) }
         onPermissionGranted()
     }
+
     fun onPermissionGranted() {
         val state = _uiState.value
         if (state.hasCallLogPermission && state.hasPhoneStatePermission) {
