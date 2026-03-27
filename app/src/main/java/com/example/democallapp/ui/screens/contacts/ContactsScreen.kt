@@ -67,7 +67,6 @@ fun ContactsScreen(viewModel: ContactsViewModel = hiltViewModel()) {
             .fillMaxSize()
             .background(NightDialColors.Background)
             .statusBarsPadding()
-            .navigationBarsPadding()
     ) {
         Text(
             text = "Contacts",

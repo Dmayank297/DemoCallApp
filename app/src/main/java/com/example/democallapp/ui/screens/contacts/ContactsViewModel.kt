@@ -53,7 +53,6 @@ class ContactsViewModel @Inject constructor(
             .debounce(300)
             .distinctUntilChanged()
             .onEach { query ->
-                _uiState.update { it.copy(searchQuery = query) }
                 loadContacts(query)
             }
             .launchIn(viewModelScope)
@@ -65,6 +64,7 @@ class ContactsViewModel @Inject constructor(
     }
 
     fun onSearchQueryChanged(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
         _searchQuery.value = query
     }
 

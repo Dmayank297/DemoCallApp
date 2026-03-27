@@ -82,6 +82,7 @@ class DialPadViewModel @Inject constructor(
     }
 
     private fun formatNumber(raw: String): String {
+        if (raw.contains("*") || raw.contains("#")) return raw
         val digits = raw.filter { it.isDigit() }
         return when {
             digits.length <= 3 -> digits

@@ -29,6 +29,9 @@ import com.example.democallapp.domain.model.CallLogEntry
 import com.example.democallapp.domain.model.CallType
 import com.example.democallapp.ui.theme.DMSansFontFamily
 import com.example.democallapp.ui.theme.NightDialColors
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun CallLogsScreen(viewModel: CallLogsViewModel = hiltViewModel()) {
@@ -74,7 +77,6 @@ fun CallLogsScreen(viewModel: CallLogsViewModel = hiltViewModel()) {
             .fillMaxSize()
             .background(NightDialColors.Background)
             .statusBarsPadding()
-            .navigationBarsPadding()
     ) {
         Text(
             text = "Recents",
@@ -114,6 +116,11 @@ fun CallLogsScreen(viewModel: CallLogsViewModel = hiltViewModel()) {
 
 @Composable
 private fun CallLogItem(entry: CallLogEntry, onClick: () -> Unit) {
+    fun Long.toDateString(): String =
+        SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(this))
+
+    fun Long.toTimeString(): String =
+        SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(this))
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -134,23 +141,78 @@ private fun CallLogItem(entry: CallLogEntry, onClick: () -> Unit) {
                 fontSize = 16.sp, fontFamily = DMSansFontFamily, fontWeight = FontWeight.Medium)
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = entry.displayName, color = NightDialColors.OnSurface,
-                fontSize = 15.sp, fontFamily = DMSansFontFamily, fontWeight = FontWeight.Medium)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = entry.displayName,
+                    color = NightDialColors.OnSurface,
+                    fontSize = 15.sp,
+                    fontFamily = DMSansFontFamily,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Text(
+                    text = entry.durationSeconds.toCallDurationString(),
+                    color = NightDialColors.OnSurfaceMuted,
+                    fontSize = 12.sp,
+                    fontFamily = DMSansFontFamily
+                )
+            }
+
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 val icon = when (entry.type) {
                     CallType.INCOMING -> R.drawable.call
                     CallType.OUTGOING -> R.drawable.call
                     CallType.MISSED -> R.drawable.call_end
                     CallType.UNKNOWN -> R.drawable.call
                 }
-                Icon(painterResource(icon), contentDescription = null,
-                    tint = entry.type.color(), modifier = Modifier.size(12.dp))
-                Text(text = entry.type.label(), color = entry.type.color(),
-                    fontSize = 12.sp, fontFamily = DMSansFontFamily)
+
+                Icon(
+                    painterResource(icon),
+                    contentDescription = null,
+                    tint = entry.type.color(),
+                    modifier = Modifier.size(12.dp)
+                )
+
+                Text(
+                    text = entry.type.label(),
+                    color = entry.type.color(),
+                    fontSize = 12.sp,
+                    fontFamily = DMSansFontFamily
+                )
+
                 Text("•", color = NightDialColors.OnSurfaceFaint, fontSize = 12.sp)
-                Text(text = entry.dateMs.toRelativeDateString(),
-                    color = NightDialColors.OnSurfaceMuted, fontSize = 12.sp, fontFamily = DMSansFontFamily)
+
+                Text(
+                    text = entry.dateMs.toRelativeDateString(),
+                    color = NightDialColors.OnSurfaceMuted,
+                    fontSize = 12.sp,
+                    fontFamily = DMSansFontFamily
+                )
             }
+        }
+
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = entry.dateMs.toDateString(),
+                color = NightDialColors.OnSurface,
+                fontSize = 12.sp,
+                fontFamily = DMSansFontFamily
+            )
+
+            Text(
+                text = entry.dateMs.toTimeString(),
+                color = NightDialColors.OnSurfaceMuted,
+                fontSize = 11.sp,
+                fontFamily = DMSansFontFamily
+            )
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(text = entry.durationSeconds.toCallDurationString(),

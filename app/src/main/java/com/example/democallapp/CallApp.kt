@@ -100,8 +100,7 @@ private fun CallAppBottomBar(
 ) {
     NavigationBar(
         modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding(),
+            .fillMaxWidth(),
         containerColor = NightDialColors.Surface,
         tonalElevation = 0.dp
     ) {
