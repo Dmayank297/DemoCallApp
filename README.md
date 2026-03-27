@@ -9,7 +9,8 @@ A modern, high-performance Android Dialer and Contacts application built with Je
 **Key design decision:** A single shared `CallViewModel` is scoped to the nav graph and owns the `CallState` sealed class. This is the single source of truth for all call transitions. Individual screen ViewModels (`DialPadViewModel`, `ActiveCallViewModel`) only manage their own local UI state (toggles, input).
 
 ## Call State Machine
-```# 📞 NightDial — Real Calling App
+
+# 📞 NightDial — Real Calling App
 
 A fully functional Android calling application built in **Kotlin + Jetpack Compose** as part of an internship assignment. The app places **real phone calls** using Android's native telephony APIs — no fake screens, no mocked call flows.
 
@@ -153,14 +154,14 @@ Open in Android Studio → Run on device (`Shift+F10`)
 
 Custom dark theme — **NightDial** — with a consistent color palette:
 
-```
+
 Background     #060202   Deep near-black
 Surface        #141418   Card/bar backgrounds
 AccentGreen    #00E676   Primary action color
 DestructiveRed #FF3B30   End call
 OnSurface      #EEEEF2   Primary text
 OnSurfaceMuted #888899   Secondary text
-```
+
 
 Typography uses **DM Sans** across all weights (Light → Bold).
 
@@ -193,7 +194,6 @@ Typography uses **DM Sans** across all weights (Light → Bold).
 - Auto-refresh only triggers for calls made while the app is open; calls made outside the app require manual navigation to Recents to see updated logs
 
 Idle → Calling → Ringing → Active → Ended → Idle
-```
 
 - `Idle`: Default state, dial pad visible
 - `Calling`: Outgoing call screen shown, simulated incoming triggers after 3s
